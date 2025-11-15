@@ -1,16 +1,15 @@
 server:
-  port: 8082   # Different from service-1
+  port: 8761
 
 spring:
   application:
-    name: processing-service-2
-  cloud:
-    config:
-      enabled: false
+    name: eureka-server
 
 eureka:
+  instance:
+    hostname: eureka-server
   client:
+    register-with-eureka: false
+    fetch-registry: false
     service-url:
       defaultZone: http://eureka-server:8761/eureka/
-    fetch-registry: true
-    register-with-eureka: true
