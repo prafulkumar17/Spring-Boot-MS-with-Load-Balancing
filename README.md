@@ -69,7 +69,8 @@ Each service contains:
                      │      Eureka Server (8761)    │
                      │      Service Registry        │
                      └─────────────────────────────
-
+```
+---
 
 ## ⚙️ Features
 
