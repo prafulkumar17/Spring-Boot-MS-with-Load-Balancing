@@ -1,0 +1,16 @@
+server:
+  port: 8082   # Different from service-1
+
+spring:
+  application:
+    name: processing-service-2
+  cloud:
+    config:
+      enabled: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true

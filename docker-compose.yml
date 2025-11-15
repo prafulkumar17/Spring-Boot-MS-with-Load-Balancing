@@ -1,0 +1,77 @@
+version: '3.8'
+services:
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
+      - EUREKA_CLIENT_REGISTERWITH_EUREKA=false
+      - EUREKA_CLIENT_FETCHREGISTRY=false
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - chaos-net
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:8761/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    restart: always
+
+  processing-service-1:
+    build: ./processing-service-1
+    container_name: processing-service-1
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_APPLICATION_NAME=processing-service-1
+      - SPRING_CLOUD_CONFIG_ENABLED=false
+    networks:
+      - chaos-net
+    restart: always
+
+  processing-service-2:
+    build: ./processing-service-2
+    container_name: processing-service-2
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_APPLICATION_NAME=processing-service-2
+      - SPRING_CLOUD_CONFIG_ENABLED=false
+    networks:
+      - chaos-net
+    restart: always
+
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      processing-service-1:
+        condition: service_started
+      processing-service-2:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_APPLICATION_NAME=gateway-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_MAIN_WEB_APPLICATION_TYPE=reactive
+    networks:
+      - chaos-net
+    restart: always
+
+networks:
+  chaos-net:
+    driver: bridge
